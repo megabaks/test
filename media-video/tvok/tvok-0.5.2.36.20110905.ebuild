@@ -24,7 +24,8 @@ IUSE=""
 RDEPEND="media-video/mplayer"
 DEPEND="${RDEPEND}
 	x11-libs/qt-core:4
-	x11-libs/qt-gui:4"
+	x11-libs/qt-gui:4
+	media-libs/libv4l"
 S="${WORKDIR}/${PN}"
 
 src_install() {
