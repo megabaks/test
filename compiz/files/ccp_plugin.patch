@@ -1,0 +1,16 @@
+Index: compiz-0.9.7.1.1/src/main.cpp
+===================================================================
+--- compiz-0.9.7.1.1.orig/src/main.cpp	2012-02-02 18:03:03.000000000 +0800
++++ compiz-0.9.7.1.1/src/main.cpp	2012-02-03 17:19:57.981945926 +0800
+@@ -146,6 +146,11 @@
+ 	}
+     }
+ 
++    if (plugins.empty ())
++    {
++    plugins.push_back ("ccp");
++    }
++
+     initialPlugins = plugins;
+ 
+     return true;

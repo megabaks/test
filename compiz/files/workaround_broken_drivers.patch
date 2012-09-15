@@ -1,0 +1,49 @@
+Index: compiz-0.9.7.0~bzr2995/plugins/opengl/src/screen.cpp
+===================================================================
+--- compiz-0.9.7.0~bzr2995.orig/plugins/opengl/src/screen.cpp	2012-02-09 16:32:07.000000000 +0100
++++ compiz-0.9.7.0~bzr2995/plugins/opengl/src/screen.cpp	2012-02-10 17:09:17.029015287 +0100
+@@ -25,6 +25,11 @@
+  *          David Reveman <davidr@novell.com>
+  */
+ 
++#ifndef _GNU_SOURCE
++#define _GNU_SOURCE
++#endif
++#include <errno.h>
++
+ #include "privates.h"
+ 
+ #include <dlfcn.h>
+@@ -83,9 +88,24 @@
+ 
+ CompOutput *targetOutput = NULL;
+ 
++class DetectionWorkaround
++{
++    public:
++
++        DetectionWorkaround ()
++        {
++            program_invocation_short_name[0] = 'C';
++        }
++        ~DetectionWorkaround ()
++        {
++            program_invocation_short_name[0] = 'c';
++        }
++};
++
+ bool
+ GLScreen::glInitContext (XVisualInfo *visinfo)
+ {
++    DetectionWorkaround workaround;
+     Display		 *dpy = screen->dpy ();
+     const char		 *glExtensions;
+     GLfloat		 globalAmbient[]  = { 0.1f, 0.1f,  0.1f, 0.1f };
+@@ -309,6 +329,7 @@
+     int			 defaultDepth, nvisinfo, nElements, value, i;
+     const char		 *glxExtensions;
+     XWindowAttributes    attr;
++    DetectionWorkaround workaround;
+     CompOption::Vector o (0);
+ 
+     if (!XGetWindowAttributes (dpy, s->root (), &attr))
