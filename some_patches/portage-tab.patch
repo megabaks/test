@@ -1,0 +1,33 @@
+diff -Naur portage-2.1.9.39//pym/_emerge/MergeListItem.py portage-my//pym/_emerge/MergeListItem.py
+--- portage-2.1.9.39//pym/_emerge/MergeListItem.py	2011-02-08 20:47:19.000000000 +0000
++++ portage-my//pym/_emerge/MergeListItem.py	2011-02-16 10:42:01.000000000 +0000
+@@ -52,7 +52,7 @@
+ 		if build_opts.fetchonly:
+ 			action_desc = "Fetching"
+ 
+-		msg = "%s (%s of %s) %s" % \
++		msg = "%s\t[%s of %s]\t%s"%\
+ 			(action_desc,
+ 			colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
+ 			colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)),
+@@ -65,7 +65,7 @@
+ 			if pkg_repo_name != portdir_repo_name:
+ 				if not pkg_repo_name:
+ 					pkg_repo_name = "unknown repo"
+-				msg += " from %s" % pkg_repo_name
++				msg += "\tfrom %s" % pkg_repo_name
+ 
+ 		if pkg.root != "/":
+ 			msg += " %s %s" % (preposition, pkg.root)
+diff -Naur portage-2.1.9.39//pym/_emerge/PackageMerge.py portage-my//pym/_emerge/PackageMerge.py
+--- portage-2.1.9.39//pym/_emerge/PackageMerge.py	2011-02-08 20:47:19.000000000 +0000
++++ portage-my//pym/_emerge/PackageMerge.py	2011-02-16 10:56:03.000000000 +0000
+@@ -23,7 +23,7 @@
+ 		else:
+ 			action_desc = "Installing"
+ 			preposition = "to"
+-			counter_str = "(%s of %s) " % \
++			counter_str = "\t[%s of %s]\t" % \
+ 				(colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
+ 				colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)))
+ 

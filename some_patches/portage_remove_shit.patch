@@ -1,0 +1,10 @@
+--- orig/portage-2.1.11.30/bin/ebuild.sh	2012-10-18 10:39:51.000000000 +0400
++++ fixed/portage-2.1.11.30/bin/ebuild.sh	2012-10-21 06:20:24.000000000 +0400
+@@ -438,6 +438,7 @@
+ 	QA_INTERCEPTORS="autoconf automake aclocal libtoolize"
+ fi
+ # level the QA interceptors if we're in depend
++unset QA_INTERCEPTORS
+ if [[ -n ${QA_INTERCEPTORS} ]] ; then
+ 	for BIN in ${QA_INTERCEPTORS}; do
+ 		BIN_PATH=$(type -Pf ${BIN})
