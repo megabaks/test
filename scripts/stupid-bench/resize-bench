@@ -1,0 +1,6 @@
+#!/bin/bash
+export ID_WIN="$(xwininfo | grep "Window id" | cut -d\" -f2)"
+echo $ID_WIN
+x=1
+wmctrl -r "$ID_WIN" -e 1,-1,-1,1,1;
+time for i in `seq 1024`;do (( x++ ));wmctrl -r "$ID_WIN" -e 1,0,0,$x,$x;done

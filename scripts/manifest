@@ -1,0 +1,12 @@
+#! /bin/bash
+
+FIND="$(find ${1} -name "*.ebuild")"
+
+for i in ${FIND};do
+ z+="${i%/*.ebuild}\n"
+done
+
+for x in `echo -e ${z} | uniq`;do
+  target="$(find ${x} -name "*.ebuild" | tail -n1)"
+  ebuild ${target} manifest
+done

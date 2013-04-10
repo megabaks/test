@@ -1,0 +1,7 @@
+#!/bin/bash
+ID_WIN=$(($(xwininfo | grep "Window id" | cut -d" " -f4)))
+
+time for i in `seq 256`;do 
+  xdotool windowunmap --sync $ID_WIN 
+  xdotool windowmap --sync $ID_WIN 
+done

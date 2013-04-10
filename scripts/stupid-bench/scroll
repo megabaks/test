@@ -1,0 +1,6 @@
+#!/bin/bash
+ID_WIN=$(($(xwininfo | grep "Window id" | cut -d" " -f4)))
+time for i in `seq 5`;do 
+for x in `seq 100`;do xdotool click --window $ID_WIN 5;done
+for y in `seq 100`;do xdotool click --window $ID_WIN 4;done
+done

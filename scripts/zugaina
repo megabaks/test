@@ -1,0 +1,50 @@
+#!/bin/bash
+####################################
+####### colors #####################
+green="\033[01;32m"
+red="\033[01;31m"
+restore="\033[00m"
+contrast="\033[1m"
+####################################
+echo
+URL="http://gpo.zugaina.org"
+####################################
+####### search #####################
+search(){
+	for page in ${PAGES};do
+		OUT="$(curl -s ${URL}/${page})"
+		OVERLAYS="$(grep -o "Overlays/.*\"" <<< "${OUT}" | sed 's|Overlays/||;s|"||' | sort -u)"
+		VERSIONS="$(grep -o "<b>.*</b" <<< "${OUT}" | sort -ru | sed -e 's|<b>||;s|</b||' -e "s|${PN}-||")"
+		for ver in ${VERSIONS};do
+			overlays="$(sed -n "/<b>${PN}-${ver}<\/b>/,/<\/li>/p" <<< "${OUT}" | grep -o "Overlays/.*\"" | sed 's|Overlays/||;s|"||' | sort -u)"
+			FULL+="${CATEGORY}/${PN}-${ver}:"${overlays//$'\n'/ }$'\n'
+		done
+	done
+}
+####################################
+####### go #########################
+if [[ "${1}" == "-e" ]] && grep -q \/ <<< "${2}";then
+	PAGES="${2}"
+	CATEGORY="$(awk -F '/' '{print $1}' <<< "${2}")"
+	PN="$(awk -F '/' '{print $2}' <<< "${2}")"
+	desc="$(curl -s ${URL}/${2} | grep -o "<h5.*/h5>")"
+	desc="${desc#*>}"
+	desc="${desc%<*}"
+	echo -e "${green}${2}${restore}: ${desc}"
+	search
+else
+	PAGE="$(curl -s ${URL}/Search?search="${1}")"
+	while read package desc;do
+		echo -e "${green}${package}${restore}: ${desc}"
+		package="$(qatom ${package})"
+		CATEGORY="$(awk '{print $1}' <<< "${package}")"
+		PN="$(awk '{print $2}' <<< "${package}")"
+		SUB_PAGE="$(curl -s http://gpo.zugaina.org/${CATEGORY}/${PN})"
+		PAGES="$(grep -o "<a href=\".*#.*\">" <<< "${SUB_PAGE}" | awk -F '/' '{print $2,$3}' | tr ' ' '/' | sort -u)"
+		search;
+	done <<< "$(sed -n '/<div id="search_results">/,/<div class="pager">/p' <<< "${PAGE}" | grep '<div>.*</div>' | sed 's|<div>||g;s|<\/div>||g')"
+fi
+####################################
+####### output #####################
+echo
+echo -e "PACKAGE:REPOSITORY\n-------:----------\n${FULL}" | column -t -s ':'

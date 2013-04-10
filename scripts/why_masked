@@ -1,0 +1,5 @@
+#!/bin/bash
+
+FILE="/usr/portage/profiles/package.mask"
+opt="$(sed 's|/|\\/|' <<< "${1}")"
+grep -20 "^[^#].*${opt}" "${FILE}" | sed -ne "/^#.*${opt}/d" -e '/./{H;$!d;}' -ne "x;/${opt}/p;" | sed '/^$/d'

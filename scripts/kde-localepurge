@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. /etc/make.conf 2>/dev/null
+DIR="/usr/share/locale/l10n/"
+langs="$(tr ' ' $'\n' <<< "${LINGUAS}")"
+for path in $(find /usr/share/locale/l10n/* -type d);do
+	grep -q "${langs}" <<< "${path##*/}" || rm -rfv "${path}"
+done
+

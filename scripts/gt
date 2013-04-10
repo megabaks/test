@@ -1,0 +1,3 @@
+#!/bin/bash
+
+curl -s -A "Mozilla/5.0" -d "ie=UTF8" -d "hl=en" -d "sl=$1" -d "tl=$2" -d "q=$3" http://translate.google.com | xmllint --html --format - 2>&- | grep result_box | elinks -dump | sed -e 's/^ *//'
