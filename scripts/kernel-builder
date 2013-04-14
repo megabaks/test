@@ -92,8 +92,8 @@ done
 ln -sfT "${ver}" /usr/src/linux
 
 cd /usr/src/linux;
-prepare;
 config;
+prepare;
 compile;
 src_install;
 dump;
