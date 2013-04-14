@@ -51,6 +51,12 @@ src_install(){
 	##### modules #######################################
 	echo -e "${green}Installing modules${restore}"
 	make INSTALL_MOD_STRIP=1 modules_install
+	KERNELRELEASE="$(cat include/config/kernel.release 2> /dev/null)"
+	MODLIB="/lib/modules/${KERNELRELEASE}"
+	rm -f "${MODLIB}/source"
+	rm -f "${MODLIB}/build"
+	ln -s "${SOURCE_DIR}" "${MODLIB}/source"
+	ln -s "${SOURCE_DIR}" "${MODLIB}/build"
 	echo -e "${green}installing kernel${restore}"
 	cp arch/x86/boot/bzImage /boot/${ver#linux-}
 
@@ -91,7 +97,7 @@ select ver in `ls -d1 /usr/src/linux-* | sed 's|/usr/src/||g'`;do
 done
 ln -sfT "${ver}" /usr/src/linux
 
-cd /usr/src/linux;
+cd /usr/src/$(readlink /usr/src/linux);
 config;
 prepare;
 compile;
