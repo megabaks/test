@@ -35,6 +35,7 @@ if [[ "${1}" == "-e" ]] && grep -q \/ <<< "${2}";then
 else
 	PAGE="$(curl -s ${URL}/Search?search="${1}")"
 	while read package desc;do
+		[[ -z "${package}" ]] && continue
 		echo -e "${green}${package}${restore}: ${desc}"
 		package="$(qatom ${package})"
 		CATEGORY="$(awk '{print $1}' <<< "${package}")"
@@ -46,5 +47,4 @@ else
 fi
 ####################################
 ####### output #####################
-echo
-echo -e "PACKAGE:REPOSITORY\n-------:----------\n${FULL}" | column -t -s ':'
+[[ -n "${FULL}" ]] && echo && echo -e "PACKAGE:REPOSITORY\n-------:----------\n${FULL}" | column -t -s ':'
