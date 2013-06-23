@@ -1,0 +1,13 @@
+#!/bin/bash
+
+path="/etc/init.d/"
+LEVELS="$(rc-update show | awk '{print $3}' | sort -u)"
+for level in ${LEVELS};do
+	DAEMONS="$(rc-update show "${level}" | awk '{print $1}')"
+	for daemon in ${DAEMONS};do
+		trash="$("${path}/${daemon}" ineed)"
+		for shit in ${trash};do
+			rc-update del "${shit}" "${level}" 2>/dev/null
+		done
+	done
+done
