@@ -7,16 +7,17 @@ underline="\033[4m"
 [[ -h "/etc/portage/make.profile" ]] && makeprof="/etc/portage/make.profile"
 
 profile() {
-	file="${1}/package.use.mask"
+	file="${1}/${3}"
 	if [[ -f "${file}" ]];then
 		output="$(grep -20 "^[^#].*${2}" "${file}" | sed -ne "/^#.*${2}/d" -e '/./{H;$!d;}' -ne "x;/${2}/p;")"
 		[[ -n "${output}" ]] && echo -e $'\n'"${underline}${file}${restore}:"$'\n'"${output}"
 	fi
 	if [[ -f "${1}/parent" ]]; then
 		for path in $(cat ${1}/parent);do
-			profile "${1}/${path}" "${2}"
+			profile "${1}/${path}" "${2}" "${3}"
 		done
 	fi
 }
-
-profile "$(readlink ${makeprof} | sed -e 's|\.\.||')" "${1}"
+for target in "package.use.mask" "use.mask";do
+	profile "$(readlink ${makeprof} | sed -e 's|\.\.||')" "${1}" "${target}"
+done
