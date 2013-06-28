@@ -1,0 +1,118 @@
+#!/bin/bash
+
+############################################################################
+################ init ######################################################
+PKGDB="/var/db/pkg"
+CONTENT="${PKGDB}/*/*/CONTENTS"
+opts="-v"
+x="${*}"
+passed="${x%-- *}"
+packages="${x##*-- }"
+packages="${packages#${passed}}"
+OPTS="${opts} ${passed% *} "
+############################################################################
+field(){
+ echo ${#}
+}
+############################################################################
+################ colors ####################################################
+green="\033[01;32m"
+red="\033[01;31m"
+restore="\033[00m"
+contrast="\033[1m"
+underline="\033[4m"
+################ check_openrc ##############################################
+[ -f "/etc/init.d/functions.sh" ] && . /etc/init.d/functions.sh
+############################################################################
+################ run #######################################################
+if [[ -z "${packages}" ]];then
+	echo -e "${green}Prelink${restore}"
+
+	if ! grep -q "u" <<< "${passed}";then
+		TARGETS="$(prelink ${OPTS} | awk '/Prelinking/ {print $2}')"
+	else
+		TARGETS="$(prelink ${OPTS} | awk '/Undoing/ {print $2}')"
+	fi &>/dev/null
+else
+	for package in ${packages};do
+	#### searching package ####
+		pre_package="$(ls -d1 ${PKGDB}/{*/,}${package}{*,/*} 2>/dev/null | cut -d\/ -f-6)"
+		pre_package="$(sort -u <<< "${pre_package//'//'//}")"
+		while read atom;do
+		pf="$(cut -d\/ -f5,6 <<< "${atom}")"
+		echo -ne "Checking ${contrast}${pf}${restore} # "
+			count="1"
+			if [[ -n "${atom}" ]];then
+			#### files only ####
+				atom_targets="$(grep "^obj " 2>/dev/null < ${atom}/CONTENTS)"
+				atom_targets="${atom_targets//obj /}"
+
+			#### remove blacklisted trash ####
+				IFS=\:
+				for mask in ${PRELINK_PATH_MASK};do
+					atom_targets="$(sed -e "s|${mask}.*||" -e '/^$/d' <<< "${atom_targets}")"
+				done
+				unset IFS
+
+				if [[ -n "${atom_targets}" ]];then
+					while read line;do
+						x="$(( $(field ${line}) - 2 ))"
+						target="$(cut -d " " -f-${x} <<< "${line}")"
+					#### elf only ####
+						if file "${target}" | grep -q ELF;then
+							my_ifs=$'\n'
+							targets+="${my_ifs}${target}"
+							targets="$(sed -e "s/^[[:space:]]//;s/[[:space:]]$//" -e'/^$/d' <<< "${targets}")"
+							targets="$(sort -u <<< "${targets}")"
+							tput sc
+							echo -ne ${green}$((count++))${restore} files
+							tput rc
+						fi
+					done <<< "${atom_targets}"
+				fi
+			else
+				echo -e "${red}Cant find${restore} '${package}'"
+				eend 1 2>/dev/null
+			fi
+			unset count
+			echo
+		done <<< "${pre_package}"
+	done
+	echo -e "\n${green}Prelink${restore}"
+	prelink ${passed} ${targets}
+fi
+
+TARGETS="$(sort -u <<< "${TARGETS}${targets}")"
+############################################################################
+################ fixing db #################################################
+[[ -n "${TARGETS}" ]] && echo -e "${green}Database${restore}"; COUNT="$(wc -l <<< "${TARGETS}" )"
+chars="$(wc -m <<< "${COUNT}")"
+
+while read target;do
+	echo -ne "["; printf "% ${chars}d" $((COUNT--));echo -ne " ]" "files left:" 2>/dev/null
+	all="$(grep -m1 "obj ${target/[/\[} " ${CONTENT})"
+	if [[ -n "${all}" ]];then
+		file="${all%%:*}"
+		old_stuff="${all#${file/[/\[}* }"
+		x="$(field ${old_stuff})"
+		((x--))
+		old_md5="$(cut -d " " -f${x} <<< "${old_stuff}")"
+		new_md5="$(md5sum "${target}" | cut -d " " -f1)"
+		if [[ "${old_md5}" != "${new_md5}" ]];then
+			new_stuff="${old_stuff/${old_md5}/${new_md5}}"
+			[ -z "${silent}" ] && echo -e "\t${contrast}${target}${restore}"
+			sed -e "s|${old_stuff/[/\[}|${new_stuff/[/\[}|" -i "${file}" 2>/dev/null
+			eend $? 2>/dev/null
+		else
+			[ -z "${silent}" ] && echo -e "\t${green}${target}${restore}"
+			eend 0 2>/dev/null
+		fi
+	else
+		if [[ -n "${target}" ]];then
+			[ -z "${silent}" ] && echo -e "\tCan't find ${red}${target}${restore} in ${PKGDB}!"
+			eend 1 2>/dev/null
+		fi
+	fi
+done <<< "${TARGETS}"
+[[ -n "${TARGETS}" ]] && echo -e "\n${green}Fixed!${restore}"
+eend 0 2>/dev/null
