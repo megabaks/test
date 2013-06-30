@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for i in $(find ${1} -name "*.ebuild");do
+	x="${i%/*}"
+	TARGETS+="${x#${1}/}"$'\n'
+done
+
+TARGETS="$(sort -u <<<"${TARGETS}")"
+
+for target in ${TARGETS};do
+	euscan -q "${target}" | echo "nothing ---> ${target}"
+done
