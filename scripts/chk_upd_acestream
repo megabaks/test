@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for i in i386 amd64;do
+	URI="http://repo.acestream.org/ubuntu/dists/raring/main/binary-${i}/Packages"
+	echo "### ${i} ###"
+	src="$(curl -s "${URI}")"
+	pkgs_vers="$(grep -e Package -e Version <<< "${src}" | sed -e 's|Package: ||;s|Version: ||g' | sed '$!N;s/\n/ /')"
+	dists_uris="$(grep -e Filename <<< "${src}" | sed -e 's|Filename: ||')"
+	while read line;do
+		URIs+="http://repo.acestream.org/ubuntu/${line}"$'\n'
+	done <<< "${dists_uris}"
+	echo "${pkgs_vers}" | column -t
+	echo
+done
+
+echo "${URIs}" | sort -u
