@@ -7,6 +7,7 @@ for i in ${FIND};do
 done
 
 for x in `echo -e ${z} | uniq`;do
-  target="$(find ${x} -name "*.ebuild" | tail -n1)"
-  ebuild ${target} manifest
+  targets+="$(find ${x} -name "*.ebuild" | tail -n1)"$'\n'
 done
+
+parallel -j5 "ebuild" ::: "${targets%$'\n'}" ::: manifest
