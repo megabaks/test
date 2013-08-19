@@ -1,6 +1,7 @@
 #!/bin/bash
 
 green="\033[01;32m"
+red="\033[01;31m"
 contrast="\033[1m"
 restore="\033[00m"
 
@@ -17,7 +18,7 @@ for lib in `qlist -C "${package}" | grep "\.so"`;do
 		if [[ -n "${soname}" ]];then
 			pkg="$(grep " ${fname} " /var/db/pkg/*/*/CONTENTS | cut -d\/ -f5,6)"
 			[[ "${package}" == "--all" || -z "${package}" ]] && package="$(grep " ${lib} " /var/db/pkg/*/*/CONTENTS | cut -d\/ -f5,6)"
-			echo -e "${lib} ${green}by${restore} ${contrast}${package}${restore}\n${soname} ${green}>>>${restore} ${fname} ${green}>>>${restore} ${pkg}\n"
+			echo -e "${lib} ${green}>>>${restore} ${red}${package}${restore}\n${soname} ${green}>>>${restore} ${fname} ${green}>>>${restore} ${pkg}\n"
 		unset pkg package
 		fi
 	done <<< "$(grep "${library}" <<< "$(ldd "${lib}" 2>/dev/null)" | awk '{print $1,$3}')"
