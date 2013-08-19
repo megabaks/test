@@ -1,0 +1,24 @@
+#!/bin/bash
+
+green="\033[01;32m"
+contrast="\033[1m"
+restore="\033[00m"
+
+if [[ -z "${2}" ]];then
+	library="${1}"
+	package="--all"
+else
+	library="${2}"
+	package="${1}"
+fi
+
+for lib in `qlist -C "${package}" | grep "\.so"`;do
+	while read soname fname;do
+		if [[ -n "${soname}" ]];then
+			pkg="$(grep " ${fname} " /var/db/pkg/*/*/CONTENTS | cut -d\/ -f5,6)"
+			[[ "${package}" == "--all" || -z "${package}" ]] && package="$(grep " ${lib} " /var/db/pkg/*/*/CONTENTS | cut -d\/ -f5,6)"
+			echo -e "${lib} ${green}by${restore} ${contrast}${package}${restore}\n${soname} ${green}>>>${restore} ${fname} ${green}>>>${restore} ${pkg}\n"
+		unset pkg package
+		fi
+	done <<< "$(grep "${library}" <<< "$(ldd "${lib}" 2>/dev/null)" | awk '{print $1,$3}')"
+done
