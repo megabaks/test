@@ -19,7 +19,7 @@ if ! grep -q "bug=" <<< "${1}";then
 		desc="${desc#*\>}"
 		desc="${desc%%\<*}"
 		status="$(echo "${CONTENT}" | grep -A1 ${id} | awk '/bz_[[:upper:]]/ {print $3}' | sed 's|bz_||')"
-		echo -e "${status}\t${green}${id}${restore}: ${desc}" | sed -e 's|&quot;|\"|g;s|&gt;|\>|g;s|&lt;|\<|g'
+		echo -e "${status}\t${green}${id}${restore} : ${desc}" | sed -e 's|&quot;|\"|g;s|&gt;|\>|g;s|&lt;|\<|g'
 	done
 else
 	id="${1#bug=}"
@@ -29,7 +29,7 @@ else
 	desc="$(grep "Bug ${id} &ndash" <<< "${CONTENT}")"
 	desc="${desc#*\;}"
 	desc="${desc%\<*}"
-	echo -e "${status}\t${green}${id}${restore}: ${desc}" | sed -e 's|&quot;|\"|g;s|&gt;|\>|g;s|&lt;|\<|g'
+	echo -e "${status}\t${green}${id}${restore} : ${desc}" | sed -e 's|&quot;|\"|g;s|&gt;|\>|g;s|&lt;|\<|g'
 	echo -e "Attachments:"
 	while read line;do
 		name="${line#*title=\"}"
@@ -37,4 +37,6 @@ else
 		href="${BGO}/attachment.cgi?id=${line%&amp*}"
 		[[ -n "${name}" ]] && echo -e "${underline}${href}${restore} ${name}"
 	done <<< "$(echo "${CONTENT}" | grep "href=\"attachment.cgi?id=.*title" | sed 's|.*id=||')"
+	echo -e "URI:"
+	echo -e "${underline}${URL}${restore}"
 fi
