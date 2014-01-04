@@ -63,7 +63,8 @@ src_install(){
 	#####################################################
 	##### bootloader ####################################
 	echo -e "${green}Configuring grub${restore}"
-	sed -e "s|/boot/.* |/boot/${ver#linux-} |" \
+	old_ver="$(grep kernel /boot/grub/grub.conf | tr ' ' $'\n'| grep boot)"
+	sed -e "s|${old_ver} |/boot/${ver#linux-} |" \
 		-e "s|title Gentoo.*|title Gentoo ${ver#linux-}|"\
 		-i /boot/grub/grub.conf
 }
