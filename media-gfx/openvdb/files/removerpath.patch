@@ -1,0 +1,26 @@
+Description: Remove hard-coded rpath from original build system
+Author: Mathieu Malaterre <malat@debian.org>
+Forwarded: not-needed
+
+Index: openvdb/Makefile
+===================================================================
+--- openvdb.orig/Makefile	2013-12-29 12:33:05.230963069 +0100
++++ openvdb/Makefile	2013-12-29 12:33:52.026964098 +0100
+@@ -627,7 +627,7 @@
+ 	@echo "Building $@ because of $(call list_deps)"
+ 	$(CXX) $(CXXFLAGS) -o $@ cmd/openvdb_render/main.cc -I . -I $(EXR_INCL_DIR) \
+ 	    $(LIBS_RPATH) $(CONCURRENT_MALLOC_LIB) \
+-	    -Wl,-rpath,$(EXR_LIB_DIR) -L$(EXR_LIB_DIR) $(EXR_LIB) \
++	    -L$(EXR_LIB_DIR) $(EXR_LIB) \
+ 	    $(LIBOPENVDB_RPATH) -L$(CURDIR) $(LIBOPENVDB)
+ 
+ ifneq (yes,$(has_glfw))
+@@ -648,7 +648,7 @@
+ vdb_view: $(LIBOPENVDB) $(LIBVIEWER_OBJ_NAMES) cmd/openvdb_view/main.cc
+ 	@echo "Building $@ because of $(call list_deps)"
+ 	$(CXX) $(CXXFLAGS) -o $@ cmd/openvdb_view/main.cc $(LIBVIEWER_OBJ_NAMES) \
+-		-I . -Wl,-rpath,$(GLFW_LIB_DIR) -L$(GLFW_LIB_DIR) $(GLFW_LIB) \
++		-I . -L$(GLFW_LIB_DIR) $(GLFW_LIB) \
+ 		$(LIBVIEWER_FLAGS) $(LIBS_RPATH) $(CONCURRENT_MALLOC_LIB) \
+ 	    $(LIBOPENVDB_RPATH) -L$(CURDIR) $(LIBOPENVDB)
+ endif
