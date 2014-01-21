@@ -11,7 +11,7 @@ inherit eutils versionator python-r1
 DESCRIPTION="Libs for the efficient manipulation of volumetric data"
 HOMEPAGE="http://www.openvdb.org"
 MY_PV="$(replace_all_version_separators '_')"
-SRC_URI="http://www.openvdb.org/download/openvdb_${MY_PV}_library.zip"
+SRC_URI="http://www.openvdb.org/download/${PN}_${MY_PV}_library.zip"
 LICENSE="Mozilla Public License Version 2.0"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
