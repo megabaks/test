@@ -6,7 +6,7 @@ EAPI="5"
 
 PYTHON_COMPAT=( python2_7 )
 
-inherit eutils versionator python-r1 flag-o-matic
+inherit eutils versionator python-r1
 
 DESCRIPTION="Libs for the efficient manipulation of volumetric data"
 HOMEPAGE="http://www.openvdb.org"
@@ -27,8 +27,7 @@ DEPEND="
 	>=app-text/ghostscript-gpl-8.70
 	>=media-libs/glfw-2.7.5
 	dev-libs/jemalloc
-	dev-python/numpy[${PYTHON_USEDEP}]
-	media-gfx/graphviz[${PYTHON_USEDEP}]"
+	dev-python/numpy[${PYTHON_USEDEP}]"
 
 RDEPEND=""
 
