@@ -1,4 +1,6 @@
 #!/bin/bash
+green="\033[01;32m"
+restore="\033[00m"
 find_category(){
 	[[ -f "/etc/make.conf" ]] && source "/etc/make.conf" 2>/dev/null
 	[[ -f "${PORT_ETC}/make.conf" ]] && source "${PORT_ETC}/make.conf" 2>/dev/null
@@ -47,5 +49,6 @@ if ! grep -q '/' <<< "${1}";then
 fi
 for path in $(masked);do
 	opt="$(sed 's|/|\\/|' <<< "${category}/${1##*/}")"
-	awk -vRS= "/${opt}/"'{ print " " FILENAME ":", "\n" "\n" $0 "\n" }' "${path}/package.mask"
+	awk -vRS= "/${opt}/"'{ print " " FILENAME ":", "\n" "\n" $0 "\n" }' "${path}/package.mask" | \
+		sed "s|${opt}|`echo -e ${green}${opt}${restore}`|"
 done
