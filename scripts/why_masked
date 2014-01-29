@@ -1,5 +1,51 @@
 #!/bin/bash
+find_category(){
+	[[ -f "/etc/make.conf" ]] && source "/etc/make.conf" 2>/dev/null
+	[[ -f "${PORT_ETC}/make.conf" ]] && source "${PORT_ETC}/make.conf" 2>/dev/null
+	[[ -z "${PORTDIR}" ]] && PORTDIR="/usr/portage"
+	if [[ -n "$(eix -V 2>/dev/null)" ]];then
+		PORTDIR_OVERLAY="$(eix --print PORTDIR_OVERLAY)"
+	else
+		export "$(grep "^PORTDIR_OVERLAY=" <<< "$(emerge --info 2>/dev/null)" | tr -d \")"
+	fi
+	for target in ${PORTDIR} ${PORTDIR_OVERLAY};do
+		categories+="$(ls -d1 ${target}/{*-*,virtual} 2>/dev/null)"$'\n'
+	done
+	categories="$(sed '/^$/d' <<< "${categories}" 2>/dev/null | sort -u)"
+	while read line;do
+		if [[ -d "${line}/${1}" ]];then
+			category+="${line##*/}"$'\n'
+		fi
+	done <<< "${categories}"
+	echo "${category}"
+}
 
-FILE="/usr/portage/profiles/package.mask"
-opt="$(sed 's|/|\\/|' <<< "${1}")"
-grep -20 "^[^#].*${opt}" "${FILE}" | sed -ne "/^#.*${opt}/d" -e '/./{H;$!d;}' -ne "x;/${opt}/p;" | sed '/^$/d'
+masked(){
+	profile() {
+		[[ -f "${1}/package.mask" ]] && MASKED+=" ${1}"
+		if [[ -f "${1}/parent" ]]; then
+			for path in $(cat "${1}/parent");do
+				profile "${1}/${path}"
+			done
+		fi
+	}
+	[[ -f "/usr/portage/profiles/package.mask" ]] && MASKED="/usr/portage/profiles"
+	[[ -h "/etc/make.profile" ]] && profile "$(readlink -f /etc/make.profile)"
+	[[ -h "/etc/portage/make.profile" ]] && profile "$(readlink -f /etc/portage/make.profile)"
+	echo "${MASKED}"
+}
+grep -q '/' <<< "${1}" && category="$(cut -d \/ -f1 <<< "${1}")"
+if ! grep -q '/' <<< "${1}";then
+		category="$(find_category "${1}")"
+		if [[ "$(wc -l <<< "${category}")" != "1" ]];then
+			echo -e "${green}choose one of${restore}:"
+			for i in ${category};do
+				echo "${i}/${1}"
+			done
+			exit 0
+		fi
+fi
+for path in $(masked);do
+	opt="$(sed 's|/|\\/|' <<< "${category}/${1##*/}")"
+	awk -vRS= "/${opt}/"'{ print " " FILENAME ":", "\n" "\n" $0 "\n" }' "${path}/package.mask"
+done
