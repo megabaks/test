@@ -46,15 +46,6 @@ eerror () {
 einfo () {
 	echo -e " ${GOOD}*${NORMAL} $*"
 }
-print() {
-	for x in $@; do
-		if [ "${x}" = "" ]; then
-			return 0
-		else
-			/bin/echo $x
-		fi
-	done
-}
 
 # Deleting a filepath and optionally counting freed space
 remove() {
