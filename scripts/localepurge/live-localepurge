@@ -46,39 +46,44 @@ remove() {
 # Getting rid of superfluous locale files in $LOCALEDIR:
 purgelocale () {
 	local ALL_DIRS="$(find ${D} -type d -name LC_MESSAGES)"
-	for lang in ${LINGUAS};do
-		GOOD_LOCALES+="/${lang}/LC_MESSAGES\n"
-	done
-	GOOD_LOCALES="$(echo -e "${GOOD_LOCALES}")"
-	TRASHLIST="$(grep -v "${GOOD_LOCALES}" <<< "${ALL_DIRS}")"
-	for DIR in ${TRASHLIST};do
-		remove "${DIR%/LC_MESSAGES}"
-	done
-	if test $SPACETMP -gt 0 ; then
-		LOCALETOTAL=$(($LOCALETOTAL + $SPACETMP))
-		einfo "live-localepurge: Disk space freed in $LOCALEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+	if [ -n "${ALL_DIRS}" ];then
+		for lang in ${LINGUAS};do
+			local GOOD_LOCALES+="/${lang}/LC_MESSAGES\n"
+		done
+		GOOD_LOCALES="$(echo -e "${GOOD_LOCALES}")"
+		local TRASHLIST="$(grep -v "${GOOD_LOCALES}" <<< "${ALL_DIRS}")"
+		for DIR in ${TRASHLIST};do
+			remove "${DIR%/LC_MESSAGES}"
+		done
+		if test $SPACETMP -gt 0 ; then
+			LOCALETOTAL=$(($LOCALETOTAL + $SPACETMP))
+			einfo "live-localepurge: Disk space freed in $LOCALEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+		fi
+		SPACETMP=0
 	fi
-	SPACETMP=0
 }
 
 purgeman(){
 	local MAN_DIRS="$(find ${D} -type d -name 'man')"
 	for lang in ${LINGUAS};do
-		GOOD_MAN+="/man/${lang}\n"
+		local GOOD_MAN+="/man/${lang}\n"
 	done
 	GOOD_MAN="$(echo -e "${GOOD_MAN}")"
-	for DIR in ${MAN_DIRS};do
-		SUBDIRS="$(ls -d1 ${DIR}/* | grep -v "/man[1-9]")"
-	done
-	TRASHLIST="$(grep -v "${GOOD_MAN}" <<< "${SUBDIRS}")"
-	for DIR in ${TRASHLIST};do
-		remove "${DIR}"
-	done
-	if test $SPACETMP -gt 0 ; then
-		MANTOTAL=$(($MANTOTAL + $SPACETMP))
-		einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+	if [ -n "${MAN_DIRS}" ];then
+		for DIR in ${MAN_DIRS};do
+			local SUBDIRS="$(ls -d1 ${DIR}/* | grep -v "/man[1-9]")"
+		done
+
+		local TRASHLIST="$(grep -v "${GOOD_MAN}" <<< "${SUBDIRS}")"
+		for DIR in ${TRASHLIST};do
+			remove "${DIR}"
+		done
+		if test $SPACETMP -gt 0 ; then
+			MANTOTAL=$(($MANTOTAL + $SPACETMP))
+			einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+		fi
+		SPACETMP=0
 	fi
-	SPACETMP=0
 }
 
 purgelocale
