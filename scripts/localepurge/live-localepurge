@@ -1,0 +1,128 @@
+#!/bin/bash
+
+live-localepurge(){
+
+# Based on http://git.overlays.gentoo.org/gitweb/?p=proj/localepurge.git;a=summary
+# да-да "ненужно" :3
+# Deleting all locale files on system
+# *not* listed in ${LINGUAS}
+
+set -e
+
+LOCALELIST="$(cut -d ' ' -f1 < /usr/share/i18n/SUPPORTED)"
+LOCALELIST+="$(cut -d '_' -f1 <<< "${LOCALELIST}")"
+LOCALELIST="$(sort -u <<< "${LOCALELIST}")"
+
+for lang in ${LINGUAS};do
+	if ! grep -q '_' <<< "${lang}";then
+		UP=$(tr [a-z] [A-Z] <<< "${lang}")
+		LINGUAS+=" ${lang}_${UP}"
+	fi
+done
+
+NOPURGE="$(tr ' ' $'\n' <<< "${LINGUAS}")"
+
+PURGELIST="$(grep -xv "${NOPURGE}" <<< "${LOCALELIST}")"
+
+MANPAGEDIRS="${D}/usr/share/man ${D}/usr/man ${D}/usr/local/share/man ${D}/usr/kde/?.?/share/man ${D}/usr/kde/?.?/man ${D}/opt/sun-jdk-*/man ${D}/opt/sun-jre-bin-*/man"
+
+VERSION="0.1"
+
+LOCALETOTAL=0
+MANTOTAL=0
+SPACETMP=0
+
+GOOD=$'\e[32;01m'
+BAD=$'\e[31;01m'
+NORMAL=$'\e[0m'
+BOLD=$'\e[1m'
+
+ACTION="rm -vf"
+DIR_ACTION="rm -vfr"
+
+eerror () {
+	echo -e " ${BAD}*${NORMAL} $*" 2> /dev/stderr
+}
+einfo () {
+	echo -e " ${GOOD}*${NORMAL} $*"
+}
+print() {
+	for x in $@; do
+		if [ "${x}" = "" ]; then
+			return 0
+		else
+			/bin/echo $x
+		fi
+	done
+}
+
+# Deleting a filepath and optionally counting freed space
+remove() {
+	local REMOVEPATH="$1"
+	SPACEBEFORE=$(df -P ${REMOVEPATH}| awk '{if ( NR==2 ) { print $3 }}')
+	${ACTION} `find ${REMOVEPATH} -type f -o -type l`
+	[ -z "$(find ${REMOVEPATH} -type f -o -type l)" ] && ${DIR_ACTION} ${REMOVEPATH}
+	# if symlink, REMOVEPATH could be removed
+	# check from parentdir then
+	if [ -d ${REMOVEPATH} ]; then
+		SPACEAFTER=$(df -P ${REMOVEPATH} | awk '{if ( NR==2 ) { print $3 }}')
+	else
+		SPACEAFTER=$(df -P ${REMOVEPATH%/*} | awk '{if ( NR==2 ) { print $3 }}')
+	fi
+	SPACESUM=$(($SPACEBEFORE - $SPACEAFTER))
+	if test $SPACESUM -gt 0 ; then
+		SPACETMP=$(($SPACETMP + $SPACESUM))
+	fi
+}
+
+# Getting rid of superfluous locale files in $LOCALEDIR:
+purgelocale () {
+	local ALL_DIRS="$(find ${D} -type d -name LC_MESSAGES)"
+	for DIR in ${ALL_DIRS};do
+		DIR="${DIR%/LC_MESSAGES}"
+		for LOCALE in ${PURGELIST};do
+			[[ ${DIR} == */${LOCALE} ]] && remove "${DIR}"
+		done
+	done
+	if test $SPACETMP -gt 0 ; then
+		LOCALETOTAL=$(($LOCALETOTAL + $SPACETMP))
+		einfo "live-localepurge: Disk space freed in $LOCALEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+	fi
+	SPACETMP=0
+}
+
+# Getting rid of localized man pages in $MANPAGEDIR
+purgeman () {
+	local MANPAGEDIR="$1"
+	if [ -d $MANPAGEDIR ]; then
+		for LOCALE in `/bin/ls ${MANPAGEDIR} | grep -v ^man[1-9]`; do
+			if grep -xq ${LOCALE} <<< "${PURGELIST}";then
+				[ -d ${MANPAGEDIR}/${LOCALE} ] && remove "${MANPAGEDIR}/${LOCALE}"
+			fi
+		done
+		if test $SPACETMP -gt 0 ; then
+			MANTOTAL=$(($MANTOTAL + $SPACETMP))
+			einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+		fi
+		SPACETMP=0
+	fi
+}
+
+purgelocale
+
+for folder in ${MANPAGEDIRS}; do
+	purgeman "$folder"
+done
+
+# Calculating and reporting total disk space freed:
+TOTAL=$(($LOCALETOTAL+$MANTOTAL))
+test $TOTAL -lt 0 && TOTAL=0
+
+echo ""
+einfo "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
+echo ""
+}
+
+post_src_install(){
+	live-localepurge
+}
