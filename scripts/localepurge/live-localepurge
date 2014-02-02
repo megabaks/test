@@ -9,43 +9,20 @@ live-localepurge(){
 
 set -e
 
-LOCALELIST="$(cut -d ' ' -f1 < /usr/share/i18n/SUPPORTED)"
-LOCALELIST+="$(cut -d '_' -f1 <<< "${LOCALELIST}")"
-LOCALELIST="$(sort -u <<< "${LOCALELIST}")"
-
-for lang in ${LINGUAS};do
-	if ! grep -q '_' <<< "${lang}";then
-		UP=$(tr [a-z] [A-Z] <<< "${lang}")
-		LINGUAS+=" ${lang}_${UP}"
-	fi
-done
-
-NOPURGE="$(tr ' ' $'\n' <<< "${LINGUAS}")"
-
-PURGELIST="$(grep -xv "${NOPURGE}" <<< "${LOCALELIST}")"
-
-MANPAGEDIRS="${D}/usr/share/man ${D}/usr/man ${D}/usr/local/share/man ${D}/usr/kde/?.?/share/man ${D}/usr/kde/?.?/man ${D}/opt/sun-jdk-*/man ${D}/opt/sun-jre-bin-*/man"
-
-VERSION="0.1"
+VERSION="0.2"
 
 LOCALETOTAL=0
 MANTOTAL=0
 SPACETMP=0
 
 GOOD=$'\e[32;01m'
-BAD=$'\e[31;01m'
 NORMAL=$'\e[0m'
 BOLD=$'\e[1m'
 
 ACTION="rm -vf"
 DIR_ACTION="rm -vfr"
 
-eerror () {
-	echo -e " ${BAD}*${NORMAL} $*" 2> /dev/stderr
-}
-einfo () {
-	echo -e " ${GOOD}*${NORMAL} $*"
-}
+einfo () { echo -e " ${GOOD}*${NORMAL} $*";}
 
 # Deleting a filepath and optionally counting freed space
 remove() {
@@ -69,11 +46,13 @@ remove() {
 # Getting rid of superfluous locale files in $LOCALEDIR:
 purgelocale () {
 	local ALL_DIRS="$(find ${D} -type d -name LC_MESSAGES)"
-	for DIR in ${ALL_DIRS};do
-		DIR="${DIR%/LC_MESSAGES}"
-		for LOCALE in ${PURGELIST};do
-			[[ ${DIR} == */${LOCALE} ]] && remove "${DIR}"
-		done
+	for lang in ${LINGUAS};do
+		GOOD_LOCALES+="/${lang}/LC_MESSAGES\n"
+	done
+	GOOD_LOCALES="$(echo -e "${GOOD_LOCALES}")"
+	TRASHLIST="$(grep -v "${GOOD_LOCALES}" <<< "${ALL_DIRS}")"
+	for DIR in ${TRASHLIST};do
+		remove "${DIR%/LC_MESSAGES}"
 	done
 	if test $SPACETMP -gt 0 ; then
 		LOCALETOTAL=$(($LOCALETOTAL + $SPACETMP))
@@ -82,28 +61,29 @@ purgelocale () {
 	SPACETMP=0
 }
 
-# Getting rid of localized man pages in $MANPAGEDIR
-purgeman () {
-	local MANPAGEDIR="$1"
-	if [ -d $MANPAGEDIR ]; then
-		for LOCALE in `/bin/ls ${MANPAGEDIR} | grep -v ^man[1-9]`; do
-			if grep -xq ${LOCALE} <<< "${PURGELIST}";then
-				[ -d ${MANPAGEDIR}/${LOCALE} ] && remove "${MANPAGEDIR}/${LOCALE}"
-			fi
-		done
-		if test $SPACETMP -gt 0 ; then
-			MANTOTAL=$(($MANTOTAL + $SPACETMP))
-			einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
-		fi
-		SPACETMP=0
+purgeman(){
+	local MAN_DIRS="$(find ${D} -type d -name 'man')"
+	for lang in ${LINGUAS};do
+		GOOD_MAN+="/man/${lang}\n"
+	done
+	GOOD_MAN="$(echo -e "${GOOD_MAN}")"
+	for DIR in ${MAN_DIRS};do
+		SUBDIRS="$(ls -d1 ${DIR}/* | grep -v "/man[1-9]")"
+	done
+	TRASHLIST="$(grep -v "${GOOD_MAN}" <<< "${SUBDIRS}")"
+	for DIR in ${TRASHLIST};do
+		remove "${DIR}"
+	done
+	if test $SPACETMP -gt 0 ; then
+		MANTOTAL=$(($MANTOTAL + $SPACETMP))
+		einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
 	fi
+	SPACETMP=0
 }
 
 purgelocale
 
-for folder in ${MANPAGEDIRS}; do
-	purgeman "$folder"
-done
+purgeman
 
 # Calculating and reporting total disk space freed:
 TOTAL=$(($LOCALETOTAL+$MANTOTAL))
@@ -114,6 +94,4 @@ einfo "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
 echo ""
 }
 
-post_src_install(){
-	live-localepurge
-}
+post_src_install(){ live-localepurge;}
