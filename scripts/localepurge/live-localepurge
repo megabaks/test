@@ -11,6 +11,13 @@ set -e
 
 VERSION="0.2"
 
+for lang in ${LINGUAS};do
+	if ! grep -q '_' <<< "${lang}";then
+		UP=$(tr [a-z] [A-Z] <<< "${lang}")
+		LINGUAS+=" ${lang}_${UP}"
+	fi
+done
+
 LOCALETOTAL=0
 MANTOTAL=0
 SPACETMP=0
