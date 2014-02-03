@@ -29,7 +29,7 @@ BOLD=$'\e[1m'
 ACTION="rm -vf"
 DIR_ACTION="rm -vfr"
 
-einfo () { echo -e " ${GOOD}*${NORMAL} $*";}
+info () { echo -e " ${GOOD}*${NORMAL} $*";}
 
 # Deleting a filepath and optionally counting freed space
 remove() {
@@ -64,7 +64,7 @@ purgelocale () {
 		done
 		if test $SPACETMP -gt 0 ; then
 			LOCALETOTAL=$(($LOCALETOTAL + $SPACETMP))
-			einfo "live-localepurge: Disk space freed in $LOCALEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+			info "live-localepurge: Disk space freed in $LOCALEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
 		fi
 		SPACETMP=0
 	fi
@@ -87,7 +87,7 @@ purgeman(){
 		done
 		if test $SPACETMP -gt 0 ; then
 			MANTOTAL=$(($MANTOTAL + $SPACETMP))
-			einfo "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
+			info "live-localepurge: Disk space freed in $MANPAGEDIR: ${BOLD}"$SPACETMP"K${NORMAL}"
 		fi
 		SPACETMP=0
 	fi
@@ -100,10 +100,7 @@ purgeman
 # Calculating and reporting total disk space freed:
 TOTAL=$(($LOCALETOTAL+$MANTOTAL))
 test $TOTAL -lt 0 && TOTAL=0
-
-echo ""
-einfo "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
-echo ""
+elog "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
 }
 
 post_src_install(){ live-localepurge;}
