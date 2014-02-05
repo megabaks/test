@@ -12,7 +12,7 @@ set -e
 VERSION="0.2"
 
 for lang in ${LINGUAS};do
-	if [[ $lang != *_* ]];then
+	if [[ ${lang} != *_* ]];then
 		UP=$(tr [a-z] [A-Z] <<< "${lang}")
 		LINGUAS+=" ${lang}_${UP}"
 	fi
@@ -100,7 +100,9 @@ purgeman
 # Calculating and reporting total disk space freed:
 TOTAL=$(($LOCALETOTAL+$MANTOTAL))
 test $TOTAL -lt 0 && TOTAL=0
-[[ "${TOTAL}" != "0" ]] && elog "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
+if [[ "${TOTAL}" != "0" ]];then
+	elog "Total disk space freed by live-localepurge: ${BOLD}"$TOTAL"K${NORMAL}"
+fi
 }
 
 post_src_install(){ live-localepurge;}
