@@ -12,7 +12,7 @@ set -e
 VERSION="0.2"
 
 for lang in ${LINGUAS};do
-	if ! grep -q '_' <<< "${lang}";then
+	if [[ $lang != *_* ]];then
 		UP=$(tr [a-z] [A-Z] <<< "${lang}")
 		LINGUAS+=" ${lang}_${UP}"
 	fi
