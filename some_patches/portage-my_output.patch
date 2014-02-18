@@ -15,7 +15,7 @@ diff -Naur portage-2.1.9.39//pym/_emerge/MergeListItem.py portage-my//pym/_emerg
  				if not pkg_repo_name:
  					pkg_repo_name = "unknown repo"
 -				msg += " from %s" % pkg_repo_name
-+				msg += "\tfrom %s" % pkg_repo_name
++				msg += "::%s" % pkg_repo_name
  
  		if pkg.root != "/":
  			msg += " %s %s" % (preposition, pkg.root)
