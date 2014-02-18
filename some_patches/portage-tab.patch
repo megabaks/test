@@ -6,7 +6,7 @@ diff -Naur portage-2.1.9.39//pym/_emerge/MergeListItem.py portage-my//pym/_emerg
  			action_desc = "Fetching"
  
 -		msg = "%s (%s of %s) %s" % \
-+		msg = "%s\t[%s of %s]\t%s"%\
++		msg = "%s\t[%23s of %23s]\t%s"%\
  			(action_desc,
  			colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
  			colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)),
@@ -27,7 +27,7 @@ diff -Naur portage-2.1.9.39//pym/_emerge/PackageMerge.py portage-my//pym/_emerge
  			action_desc = "Installing"
  			preposition = "to"
 -			counter_str = "(%s of %s) " % \
-+			counter_str = "\t[%s of %s]\t" % \
++			counter_str = "\t[%23s of %23s]\t" % \
  				(colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
  				colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)))
  
