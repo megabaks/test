@@ -1,0 +1,32 @@
+diff -Naur portage-2.2.10-orig/pym/_emerge/MergeListItem.py portage-2.2.10/pym/_emerge/MergeListItem.py
+--- portage-2.2.10-orig/pym/_emerge/MergeListItem.py	2014-03-24 21:20:46.000000000 +0400
++++ portage-2.2.10/pym/_emerge/MergeListItem.py	2014-03-30 11:46:46.000000000 +0400
+@@ -56,14 +56,14 @@
+ 		if build_opts.fetchonly:
+ 			action_desc = "Fetching"
+ 
+-		msg = "%s (%s of %s) %s" % \
++		msg = "%s\t[%23s of %23s]\t%s"%\
+ 			(action_desc,
+ 			colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
+ 			colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)),
+ 			colorize(pkg_color, pkg.cpv + _repo_separator + pkg.repo))
+ 
+ 		if pkg.root_config.settings["ROOT"] != "/":
+-			msg += " %s %s" % (preposition, pkg.root)
++			msg += " %s::%s" % (preposition, pkg.root)
+ 
+ 		if not build_opts.pretend:
+ 			self.statusMessage(msg)
+diff -Naur portage-2.2.10-orig/pym/_emerge/PackageMerge.py portage-2.2.10/pym/_emerge/PackageMerge.py
+--- portage-2.2.10-orig/pym/_emerge/PackageMerge.py	2014-03-24 21:20:46.000000000 +0400
++++ portage-2.2.10/pym/_emerge/PackageMerge.py	2014-03-30 11:47:24.000000000 +0400
+@@ -22,7 +22,7 @@
+ 		else:
+ 			action_desc = "Installing"
+ 			preposition = "to"
+-			counter_str = "(%s of %s) " % \
++			counter_str = "\t[%23s of %23s]\t" % \
+ 				(colorize("MERGE_LIST_PROGRESS", str(pkg_count.curval)),
+ 				colorize("MERGE_LIST_PROGRESS", str(pkg_count.maxval)))
+ 
