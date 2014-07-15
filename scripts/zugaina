@@ -14,7 +14,7 @@ search(){
 	for page in ${PAGES};do
 		OUT="$(curl -s ${URL}/${page})"
 		OVERLAYS="$(grep -o "Overlays/.*\"" <<< "${OUT}" | sed 's|Overlays/||;s|"||' | sort -u)"
-		VERSIONS="$(grep -o "<b>.*</b" <<< "${OUT}" | sort -ru | sed -e 's|<b>||;s|</b||' -e "s|${PN}-||")"
+		VERSIONS="$(grep -o "<b>[^ ]*</b" <<< "${OUT}" | sort -ru | sed -e 's|<b>||;s|</b||' -e "s|${PN}-||")"
 		for ver in ${VERSIONS};do
 			overlays="$(sed -n "/<b>${PN}-${ver}<\/b>/,/<\/li>/p" <<< "${OUT}" | grep -o "Overlays/.*\"" | sed 's|Overlays/||;s|"||' | sort -u)"
 			FULL+="${CATEGORY}/${PN}-${ver}:"${overlays//$'\n'/ }$'\n'
